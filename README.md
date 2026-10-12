@@ -13,7 +13,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-Или просто запустить `run.bat`.
+Или просто запустить `run.bat`.(НЕ ЗАКРЫВАЙТЕ ПОЯВИВШЕЕСЯ ОКНО)
 
 ## Горячие клавиши
 
