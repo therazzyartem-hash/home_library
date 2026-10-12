@@ -1,4 +1,3 @@
-"""Главное окно приложения."""
 from typing import List, Optional
 
 from PyQt6.QtCore import Qt
@@ -13,8 +12,6 @@ from widgets import (
 
 
 class MainWindow(QMainWindow):
-    """Окно со списком книг, фильтрами и действиями над книгами."""
-
     def __init__(self, session: Session, library: Library, storage: BookStorage,
                  report: SessionReport):
         super().__init__()
@@ -23,7 +20,7 @@ class MainWindow(QMainWindow):
         self.storage = storage
         self.report = report
 
-        self.setWindowTitle(f"Домашняя библиотека — {session.login}")
+        self.setWindowTitle(f"Домашняя библиотека - {session.login}")
         self.resize(1000, 620)
         self.setMinimumSize(780, 480)
 
@@ -39,7 +36,6 @@ class MainWindow(QMainWindow):
         self.__connect_signals()
         self.refresh()
 
-    # --- геттеры / сеттеры -------------------------------------------------
     @property
     def session(self) -> Session:
         return self.__session
@@ -72,7 +68,6 @@ class MainWindow(QMainWindow):
     def report(self, value: SessionReport) -> None:
         self.__report = value
 
-    # --- построение интерфейса ---------------------------------------------
     def __build_layout(self) -> None:
         filters = QHBoxLayout()
         filters.setSpacing(10)
@@ -83,7 +78,7 @@ class MainWindow(QMainWindow):
 
         self.__add_button = ActionButton("Добавить", "Добавить новую книгу (Ctrl+N)")
         self.__edit_button = ActionButton("Изменить", "Изменить выбранную книгу (Enter)")
-        self.__toggle_button = ActionButton("Прочитана / нет", "Переключить отметку о прочтении (Пробел)")
+        self.__toggle_button = ActionButton("Прочитано", "Переключить отметку о прочтении (Пробел)")
         self.__delete_button = ActionButton("Удалить", "Удалить выбранную книгу (Delete)", danger=True)
 
         actions = QHBoxLayout()
@@ -97,7 +92,7 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout()
         layout.setContentsMargins(16, 10, 16, 10)
         layout.setSpacing(10)
-        layout.addWidget(HeaderLabel(f"📚 {self.library.name}"))
+        layout.addWidget(HeaderLabel(self.library.name))
         layout.addLayout(filters)
         layout.addWidget(self.__table, stretch=1)
         layout.addLayout(actions)
@@ -119,7 +114,6 @@ class MainWindow(QMainWindow):
         self.__table.delete_requested.connect(self.delete_book)
         self.__table.toggle_requested.connect(self.toggle_read)
 
-    # --- логика ------------------------------------------------------------
     def visible_books(self) -> List[Book]:
         books = self.library.search(self.__search.text().strip(), self.__genre.current_genre)
         return Library.sorted_by(books, self.__sort.attribute, self.__descending.isChecked())
@@ -129,7 +123,7 @@ class MainWindow(QMainWindow):
         books = self.visible_books()
         self.__table.show_books(books)
         self.__stats.setText(
-            f"показано {len(books)} из {len(self.library)} · прочитано {self.library.read_count()} · "
+            f"показано {len(books)} из {len(self.library)}, прочитано {self.library.read_count()}, "
             f"всего страниц {self.library.total_pages()}")
 
     def selected_book(self) -> Optional[Book]:
@@ -194,7 +188,6 @@ class MainWindow(QMainWindow):
         self.refresh()
         self.statusBar().showMessage(f"Удалена книга {book}")
 
-    # --- переопределённые события окна -------------------------------------
     def showEvent(self, event) -> None:
         super().showEvent(event)
         self.statusBar().showMessage(f"Добро пожаловать, {self.session.login}! {self.library}")
@@ -209,7 +202,6 @@ class MainWindow(QMainWindow):
             super().keyPressEvent(event)
 
     def closeEvent(self, event) -> None:
-        """При закрытии сохраняем книги и дописываем сеанс в отчёт."""
         self.session.finish()
         self.save()
         self.report.append(self.session)

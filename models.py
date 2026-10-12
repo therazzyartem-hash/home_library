@@ -1,4 +1,3 @@
-"""Модели предметной области: абстрактная база, книга, пара/отображение, библиотека, сессия."""
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Callable, Iterator, List, Optional, Tuple
@@ -7,24 +6,17 @@ DATE_FORMAT = "%d.%m.%Y %H:%M:%S"
 
 
 class BaseModel(ABC):
-    """Абстрактный предок всех пользовательских классов.
-
-    Задаёт сравнение (==, <, <=, >, >=) и хеширование через абстрактный
-    ключ compare_key(). Каждый наследник обязан определить compare_key(),
-    __str__() и __repr__().
-    """
-
     @abstractmethod
     def compare_key(self) -> tuple:
-        """Кортеж, по которому объекты сравниваются и хешируются."""
+        pass
 
     @abstractmethod
     def __str__(self) -> str:
-        """Человекочитаемое представление."""
+        pass
 
     @abstractmethod
     def __repr__(self) -> str:
-        """Отладочное представление."""
+        pass
 
     def __eq__(self, other) -> bool:
         if type(self) is not type(other):
@@ -56,8 +48,6 @@ class BaseModel(ABC):
 
 
 class Book(BaseModel):
-    """Книга домашней библиотеки."""
-
     MIN_YEAR = 1000
     _next_id = 1
 
@@ -73,7 +63,6 @@ class Book(BaseModel):
         self.pages = pages
         self.is_read = is_read
 
-    # --- геттеры / сеттеры -------------------------------------------------
     @property
     def book_id(self) -> int:
         return self.__book_id
@@ -111,7 +100,7 @@ class Book(BaseModel):
         value = int(value)
         current = datetime.now().year
         if not Book.MIN_YEAR <= value <= current:
-            raise ValueError(f"Год должен быть в диапазоне {Book.MIN_YEAR}–{current}")
+            raise ValueError(f"Год должен быть в диапазоне {Book.MIN_YEAR}-{current}")
         self.__year = value
 
     @property
@@ -141,12 +130,11 @@ class Book(BaseModel):
     def is_read(self, value: bool) -> None:
         self.__is_read = bool(value)
 
-    # --- методы ------------------------------------------------------------
     @staticmethod
     def require_text(value: str, field: str) -> str:
         value = str(value).strip()
         if not value:
-            raise ValueError(f"Поле «{field}» не может быть пустым")
+            raise ValueError(f"Поле '{field}' не может быть пустым")
         return value
 
     @staticmethod
@@ -162,40 +150,33 @@ class Book(BaseModel):
         self.is_read = not self.is_read
 
     def compare_key(self) -> tuple:
-        # Одинаковыми считаются книги с совпадающими названием, автором и годом
         return self.title.lower(), self.author.lower(), self.year
 
-    # --- специальные методы ------------------------------------------------
     def __str__(self) -> str:
-        return f"«{self.title}» — {self.author} ({self.year})"
+        return f"'{self.title}' - {self.author} ({self.year})"
 
     def __repr__(self) -> str:
         return (f"Book(book_id={self.book_id}, title={self.title!r}, author={self.author!r}, "
                 f"year={self.year}, genre={self.genre!r}, pages={self.pages}, is_read={self.is_read})")
 
     def __len__(self) -> int:
-        """Длина книги — количество страниц."""
         return self.pages
 
     def __contains__(self, text: str) -> bool:
-        """Поиск подстроки в названии, авторе и жанре: `"булгаков" in book`."""
         text = str(text).lower()
         return text in self.title.lower() or text in self.author.lower() or text in self.genre.lower()
 
     def __iter__(self) -> Iterator:
-        """Значения ячеек строки таблицы."""
         yield self.book_id
         yield self.title
         yield self.author
         yield self.year
         yield self.genre
         yield self.pages
-        yield "✔" if self.is_read else "—"
+        yield "да" if self.is_read else "нет"
 
 
 class Pair(BaseModel):
-    """Пара «имя → значение», элемент PairMap."""
-
     def __init__(self, name, value):
         self.name = name
         self.value = value
@@ -220,13 +201,12 @@ class Pair(BaseModel):
         return str(self.name), str(self.value)
 
     def __str__(self) -> str:
-        return f"{self.name} → {self.value}"
+        return f"{self.name}: {self.value}"
 
     def __repr__(self) -> str:
         return f"Pair({self.name!r}, {self.value!r})"
 
     def __iter__(self) -> Iterator:
-        """Позволяет распаковывать пару: name, value = pair."""
         yield self.name
         yield self.value
 
@@ -238,8 +218,6 @@ class Pair(BaseModel):
 
 
 class PairMap(BaseModel):
-    """Собственное отображение на списке пар — замена встроенного dict."""
-
     def __init__(self, pairs: Optional[List[Tuple]] = None):
         self.pairs = [Pair(name, value) for name, value in (pairs or [])]
 
@@ -312,8 +290,6 @@ class PairMap(BaseModel):
 
 
 class Library(BaseModel):
-    """Коллекция книг с поиском, фильтрацией, сортировкой и статистикой."""
-
     def __init__(self, name: str, books: Optional[List[Book]] = None):
         self.name = name
         self.books = []
@@ -336,14 +312,12 @@ class Library(BaseModel):
     def books(self, value: List[Book]) -> None:
         self.__books = list(value)
 
-    # --- изменение ---------------------------------------------------------
     def add(self, book: Book) -> None:
         if book in self.__books:
             raise ValueError(f"Книга {book} уже есть в библиотеке")
         self.__books.append(book)
 
     def update(self, book: Book) -> None:
-        """Заменяет книгу с тем же ID на новую версию."""
         old = self.find_by_id(book.book_id)
         if old is None:
             raise ValueError("Книга не найдена")
@@ -358,7 +332,6 @@ class Library(BaseModel):
         self.__books.remove(book)
         return book
 
-    # --- выборки -----------------------------------------------------------
     def find_by_id(self, book_id: int) -> Optional[Book]:
         for book in self.__books:
             if book.book_id == book_id:
@@ -392,9 +365,8 @@ class Library(BaseModel):
     def compare_key(self) -> tuple:
         return self.name, len(self)
 
-    # --- специальные методы ------------------------------------------------
     def __str__(self) -> str:
-        return f"Библиотека «{self.name}»: {len(self)} книг"
+        return f"{self.name}: {len(self)} книг"
 
     def __repr__(self) -> str:
         return f"Library(name={self.name!r}, books={self.__books!r})"
@@ -413,8 +385,6 @@ class Library(BaseModel):
 
 
 class Session(BaseModel):
-    """Сеанс работы пользователя: логин, время входа и выхода."""
-
     def __init__(self, login: str, time_in: Optional[datetime] = None,
                  time_out: Optional[datetime] = None):
         self.login = login
@@ -456,22 +426,19 @@ class Session(BaseModel):
         return self.time_in, self.login
 
     def __str__(self) -> str:
-        return f"{self.login}: {Session.format_time(self.time_in)} — {Session.format_time(self.time_out)}"
+        return f"{self.login}: {Session.format_time(self.time_in)} - {Session.format_time(self.time_out)}"
 
     def __repr__(self) -> str:
         return f"Session(login={self.login!r}, time_in={self.time_in!r}, time_out={self.time_out!r})"
 
     def __bool__(self) -> bool:
-        """Истина, если сеанс завершён."""
         return self.time_out is not None
 
     def __int__(self) -> int:
-        """Длительность сеанса в секундах."""
         end = self.time_out or datetime.now()
         return int((end - self.time_in).total_seconds())
 
     def __iter__(self) -> Iterator[str]:
-        """Ячейки строки отчёта: login, time_in, time_out."""
         yield self.login
         yield Session.format_time(self.time_in)
         yield Session.format_time(self.time_out)

@@ -1,4 +1,3 @@
-"""Пользовательские (переопределённые) компоненты окна PyQt6."""
 import re
 from datetime import datetime
 from typing import List, Optional
@@ -15,8 +14,6 @@ from models import Book, PairMap
 
 
 class Theme:
-    """Цвета и таблица стилей приложения."""
-
     GENRE_COLORS = PairMap([
         ("Роман", "#fff4e0"),
         ("Фантастика", "#e3f2fd"),
@@ -62,8 +59,6 @@ class Theme:
 
 
 class HeaderLabel(QLabel):
-    """Заголовок окна с увеличенной минимальной высотой."""
-
     def __init__(self, text: str, parent: Optional[QWidget] = None):
         super().__init__(text, parent)
         self.setObjectName("header")
@@ -75,8 +70,6 @@ class HeaderLabel(QLabel):
 
 
 class StatsLabel(QLabel):
-    """Строка статистики; setText добавляет префикс."""
-
     PREFIX = "Статистика: "
 
     def __init__(self, parent: Optional[QWidget] = None):
@@ -89,11 +82,9 @@ class StatsLabel(QLabel):
 
 
 class SearchLineEdit(QLineEdit):
-    """Поле поиска: Esc очищает, при фокусе текст выделяется."""
-
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
-        self.setPlaceholderText("Поиск по названию, автору или жанру…  (Ctrl+F)")
+        self.setPlaceholderText("Поиск по названию, автору или жанру")
         self.setClearButtonEnabled(True)
 
     def keyPressEvent(self, event) -> None:
@@ -108,8 +99,6 @@ class SearchLineEdit(QLineEdit):
 
 
 class ActionButton(QPushButton):
-    """Кнопка с курсором-рукой; при наведении текст становится жирным."""
-
     def __init__(self, text: str, status_tip: str, danger: bool = False,
                  parent: Optional[QWidget] = None):
         super().__init__(text, parent)
@@ -134,8 +123,6 @@ class ActionButton(QPushButton):
 
 
 class NoWheelComboBox(QComboBox):
-    """Выпадающий список, не реагирующий на колесо мыши без фокуса."""
-
     def wheelEvent(self, event) -> None:
         if self.hasFocus():
             super().wheelEvent(event)
@@ -144,8 +131,6 @@ class NoWheelComboBox(QComboBox):
 
 
 class GenreComboBox(NoWheelComboBox):
-    """Фильтр по жанру с пунктом «Все жанры»."""
-
     ALL = "Все жанры"
 
     def set_genres(self, genres: List[str]) -> None:
@@ -169,8 +154,6 @@ class GenreComboBox(NoWheelComboBox):
 
 
 class SortComboBox(NoWheelComboBox):
-    """Выбор поля сортировки; варианты хранятся в PairMap «подпись → атрибут»."""
-
     OPTIONS = PairMap([
         ("По названию", "title"),
         ("По автору", "author"),
@@ -196,8 +179,6 @@ class SortComboBox(NoWheelComboBox):
 
 
 class YearSpinBox(QSpinBox):
-    """Год издания: диапазон до текущего года, колесо только при фокусе."""
-
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setRange(Book.MIN_YEAR, datetime.now().year)
@@ -212,8 +193,6 @@ class YearSpinBox(QSpinBox):
 
 
 class ReadCheckBox(QCheckBox):
-    """Флажок «прочитана», подпись меняется вместе с состоянием."""
-
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.refresh_text()
@@ -231,8 +210,6 @@ class ReadCheckBox(QCheckBox):
 
 
 class BookTable(QTableWidget):
-    """Таблица книг: Delete — удалить, Enter/двойной клик — изменить, ПКМ — меню."""
-
     edit_requested = pyqtSignal()
     delete_requested = pyqtSignal()
     toggle_requested = pyqtSignal()
@@ -303,16 +280,14 @@ class BookTable(QTableWidget):
         if self.selected_book_id is None:
             return
         menu = QMenu(self)
-        menu.addAction("Изменить…", self.edit_requested.emit)
-        menu.addAction("Отметить прочитанной / непрочитанной", self.toggle_requested.emit)
+        menu.addAction("Изменить", self.edit_requested.emit)
+        menu.addAction("Прочитано / не прочитано", self.toggle_requested.emit)
         menu.addSeparator()
         menu.addAction("Удалить", self.delete_requested.emit)
         menu.exec(event.globalPos())
 
 
 class AppStatusBar(QStatusBar):
-    """Строка состояния, добавляющая время к каждому сообщению."""
-
     DEFAULT_TIMEOUT = 5000
 
     def showMessage(self, text: str, timeout: int = DEFAULT_TIMEOUT) -> None:
@@ -320,18 +295,16 @@ class AppStatusBar(QStatusBar):
 
 
 class LoginDialog(QDialog):
-    """Окно входа: запрашивает логин пользователя."""
-
     LOGIN_PATTERN = re.compile(r"^[A-Za-zА-Яа-яЁё0-9_.-]{3,20}$")
 
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.login = ""
-        self.setWindowTitle("Вход — Домашняя библиотека")
+        self.setWindowTitle("Вход")
         self.setFixedWidth(360)
 
         self.__login_edit = QLineEdit()
-        self.__login_edit.setPlaceholderText("от 3 до 20 символов")
+        self.__login_edit.setPlaceholderText("логин")
         enter_button = ActionButton("Войти", "Начать работу с библиотекой")
         enter_button.setDefault(True)
         enter_button.clicked.connect(self.accept)
@@ -343,7 +316,7 @@ class LoginDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 20, 24, 20)
         layout.setSpacing(14)
-        layout.addWidget(HeaderLabel("📚 Домашняя библиотека"))
+        layout.addWidget(HeaderLabel("Домашняя библиотека"))
         layout.addLayout(form)
         layout.addWidget(enter_button, alignment=Qt.AlignmentFlag.AlignRight)
 
@@ -359,15 +332,13 @@ class LoginDialog(QDialog):
         login = self.__login_edit.text().strip()
         if not LoginDialog.LOGIN_PATTERN.match(login):
             QMessageBox.warning(self, "Неверный логин",
-                                "Логин: 3–20 символов, буквы, цифры, «_», «.» или «-».")
+                                "Логин должен быть от 3 до 20 символов (буквы, цифры, _ . -)")
             return
         self.login = login
         super().accept()
 
 
 class BookFormDialog(QDialog):
-    """Форма добавления/изменения книги с проверкой данных при сохранении."""
-
     def __init__(self, genres: List[str], book: Optional[Book] = None,
                  parent: Optional[QWidget] = None):
         super().__init__(parent)
@@ -450,7 +421,6 @@ class BookFormDialog(QDialog):
         super().accept()
 
     def keyPressEvent(self, event) -> None:
-        # Ctrl+Enter сохраняет форму из любого поля
         if (event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter)
                 and event.modifiers() & Qt.KeyboardModifier.ControlModifier):
             self.accept()

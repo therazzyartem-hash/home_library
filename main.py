@@ -1,4 +1,3 @@
-"""Точка входа: окно входа, затем главное окно библиотеки."""
 import sys
 from pathlib import Path
 
@@ -11,8 +10,6 @@ from widgets import LoginDialog, Theme
 
 
 class Application:
-    """Запуск приложения и пути к файлам данных."""
-
     BASE_DIR = Path(__file__).resolve().parent
     BOOKS_FILE = BASE_DIR / "data" / "books.csv"
     REPORT_FILE = BASE_DIR / "report.txt"

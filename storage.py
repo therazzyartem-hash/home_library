@@ -1,4 +1,3 @@
-"""Хранение книг в CSV и запись отчёта о сеансах работы."""
 import csv
 from pathlib import Path
 from typing import Iterator, List, Tuple
@@ -7,8 +6,6 @@ from models import BaseModel, Book, Library, Session
 
 
 class BookStorage(BaseModel):
-    """Загружает и сохраняет библиотеку в CSV-файл."""
-
     DELIMITER = ";"
     SEED = (
         ("Мастер и Маргарита", "Михаил Булгаков", 1967, "Роман", 480, True),
@@ -64,7 +61,6 @@ class BookStorage(BaseModel):
         return f"BookStorage(path={str(self.path)!r})"
 
     def __bool__(self) -> bool:
-        """Истина, если файл с данными уже существует."""
         return self.path.is_file()
 
     def __fspath__(self) -> str:
@@ -72,8 +68,6 @@ class BookStorage(BaseModel):
 
 
 class SessionReport(BaseModel):
-    """Отчёт о работе приложения: таблица login | time_in | time_out."""
-
     HEADERS = ("login", "time_in", "time_out")
 
     def __init__(self, path: Path):
@@ -98,7 +92,6 @@ class SessionReport(BaseModel):
 
     @staticmethod
     def parse(text: str) -> List[Tuple[str, str, str]]:
-        """Достаёт строки данных из ранее сохранённой таблицы."""
         rows = []
         for line in text.splitlines():
             line = line.strip()
@@ -126,7 +119,6 @@ class SessionReport(BaseModel):
         return "\n".join(lines) + "\n"
 
     def append(self, session: Session) -> None:
-        """Добавляет сеанс и перезаписывает файл отчёта."""
         self.__rows.append(tuple(session))
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(SessionReport.format_table(self.__rows), encoding="utf-8")
@@ -147,5 +139,4 @@ class SessionReport(BaseModel):
         return iter(list(self.__rows))
 
     def __contains__(self, login: str) -> bool:
-        """Был ли пользователь с таким логином: `"admin" in report`."""
         return any(row[0] == login for row in self.__rows)
